@@ -1,0 +1,49 @@
+---
+# =============================================================================
+# slack_alerts — configure Airflow Slack webhook connection + CloudWatch agent
+# =============================================================================
+
+- name: Skip Slack setup if no webhook URL provided
+  ansible.builtin.debug:
+    msg: "SLACK_WEBHOOK_URL not set — skipping Slack connection setup"
+  when: slack_webhook_url | length == 0
+
+- name: Create Airflow Slack connection via CLI
+  ansible.builtin.command: >
+    docker compose -f /opt/airflow/docker-compose.yml run --rm airflow-api-server
+    airflow connections add slack_webhook
+    --conn-type http
+    --conn-host https://hooks.slack.com/services
+    --conn-password "{{ slack_webhook_url }}"
+  args:
+    chdir: /opt/airflow
+  register: slack_conn_result
+  changed_when: "'already exists' not in slack_conn_result.stderr"
+  failed_when: false
+  become: false
+  when: slack_webhook_url | length > 0
+
+- name: Install CloudWatch Agent (for system metrics -> SNS -> Slack)
+  block:
+    - name: Download CloudWatch Agent deb
+      ansible.builtin.get_url:
+        url: https://amazoncloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+        dest: /tmp/amazon-cloudwatch-agent.deb
+        mode: "0644"
+
+    - name: Install CloudWatch Agent
+      ansible.builtin.apt:
+        deb: /tmp/amazon-cloudwatch-agent.deb
+
+    - name: Template CloudWatch Agent config
+      ansible.builtin.template:
+        src: cw-agent-config.json.j2
+        dest: /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+        mode: "0644"
+
+    - name: Start CloudWatch Agent
+      ansible.builtin.command: >
+        /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl
+        -a fetch-config -m ec2
+        -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s
+      changed_when: false

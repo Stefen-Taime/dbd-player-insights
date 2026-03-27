@@ -1,0 +1,370 @@
+{
+  "uid": "dbd-snowflake-costs",
+  "title": "DBD - Snowflake Cost Monitor",
+  "description": "Credit consumption, warehouse utilization, and expensive queries",
+  "tags": ["dbd", "snowflake", "cost", "monitoring"],
+  "timezone": "utc",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "refresh": "30m",
+  "schemaVersion": 39,
+  "templating": {
+    "list": [
+      {
+        "name": "budget",
+        "type": "custom",
+        "label": "Monthly Budget (credits)",
+        "current": { "text": "50", "value": "50" },
+        "options": [
+          { "text": "10", "value": "10", "selected": false },
+          { "text": "20", "value": "20", "selected": false },
+          { "text": "50", "value": "50", "selected": true },
+          { "text": "100", "value": "100", "selected": false }
+        ],
+        "query": "10,20,50,100"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Credits Used (Current Month)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT ROUND(SUM(credits_used), 2) AS credits_used FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY WHERE start_time >= DATE_TRUNC('MONTH', CURRENT_DATE())",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 40 },
+              { "color": "red", "value": 50 }
+            ]
+          },
+          "unit": "short",
+          "decimals": 2
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 2,
+      "title": "Budget Used (%)",
+      "type": "gauge",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT ROUND(SUM(credits_used) / ${budget}, 4) AS pct_used FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY WHERE start_time >= DATE_TRUNC('MONTH', CURRENT_DATE())",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.70 },
+              { "color": "orange", "value": 0.85 },
+              { "color": "red", "value": 0.95 }
+            ]
+          },
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      }
+    },
+    {
+      "id": 3,
+      "title": "Storage Used (TB)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT ROUND(AVG(STORAGE_BYTES + STAGE_BYTES + FAILSAFE_BYTES) / POWER(1024, 4), 4) AS storage_tb FROM SNOWFLAKE.ACCOUNT_USAGE.STORAGE_USAGE WHERE usage_date >= DATEADD(day, -1, CURRENT_DATE())",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "#457b9d", "mode": "fixed" },
+          "unit": "TB",
+          "decimals": 4
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Days Remaining in Month",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT DATEDIFF(day, CURRENT_DATE(), LAST_DAY(CURRENT_DATE())) AS days_remaining",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "#a8dadc", "mode": "fixed" },
+          "unit": "short"
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 5,
+      "title": "Daily Credit Consumption",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT start_time::DATE AS \"time\", ROUND(SUM(credits_used), 2) AS \"Credits\" FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY WHERE start_time >= DATEADD(day, -30, CURRENT_DATE()) GROUP BY 1 ORDER BY 1",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "#e63946", "mode": "fixed" },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 20,
+            "drawStyle": "bars",
+            "showPoints": "never"
+          },
+          "unit": "short",
+          "decimals": 2
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Cumulative Credits (Current Month)",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "WITH daily AS ( SELECT start_time::DATE AS day, SUM(credits_used) AS daily_credits FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY WHERE start_time >= DATE_TRUNC('MONTH', CURRENT_DATE()) GROUP BY 1 ) SELECT day AS \"time\", SUM(daily_credits) OVER (ORDER BY day) AS \"Cumulative Credits\" FROM daily ORDER BY day",
+          "refId": "A",
+          "queryType": "table"
+        },
+        {
+          "queryText": "WITH days AS ( SELECT DATEADD(day, seq4(), DATE_TRUNC('MONTH', CURRENT_DATE())) AS day FROM TABLE(GENERATOR(ROWCOUNT => 31)) WHERE day <= LAST_DAY(CURRENT_DATE()) ) SELECT day AS \"time\", ${budget} AS \"Budget\" FROM days ORDER BY day",
+          "refId": "B",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 5,
+            "drawStyle": "line",
+            "showPoints": "auto"
+          },
+          "unit": "short",
+          "decimals": 2
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Budget" },
+            "properties": [
+              { "id": "custom.lineStyle", "value": { "fill": "dash", "dash": [10, 10] } },
+              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } },
+              { "id": "custom.fillOpacity", "value": 0 }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Credits by Warehouse",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 14 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT warehouse_name, ROUND(SUM(credits_used), 2) AS credits FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY WHERE start_time >= DATE_TRUNC('MONTH', CURRENT_DATE()) GROUP BY warehouse_name ORDER BY credits DESC",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "legend": { "displayMode": "list", "placement": "right", "showLegend": true, "values": ["percent", "value"] },
+        "tooltip": { "mode": "single" },
+        "pieType": "donut"
+      }
+    },
+    {
+      "id": 8,
+      "title": "Credits by Warehouse (Daily Trend)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 16, "x": 8, "y": 14 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT start_time::DATE AS \"time\", warehouse_name AS \"metric\", ROUND(SUM(credits_used), 2) AS \"value\" FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY WHERE start_time >= DATEADD(day, -30, CURRENT_DATE()) GROUP BY 1, 2 ORDER BY 1",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 30,
+            "drawStyle": "line",
+            "showPoints": "never",
+            "stacking": { "mode": "normal" }
+          },
+          "unit": "short",
+          "decimals": 2
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    },
+    {
+      "id": 9,
+      "title": "Top 20 Most Expensive Queries (Last 7 Days)",
+      "type": "table",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 22 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT query_id, warehouse_name, user_name, ROUND(total_elapsed_time / 1000, 1) AS duration_sec, ROUND(bytes_scanned / POWER(1024, 3), 2) AS gb_scanned, ROUND(credits_used_cloud_services, 4) AS credits, SUBSTR(query_text, 1, 120) AS query_preview, start_time FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY WHERE start_time >= DATEADD(day, -7, CURRENT_DATE()) AND warehouse_name IS NOT NULL ORDER BY bytes_scanned DESC NULLS LAST LIMIT 20",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "GB_SCANNED" },
+            "properties": [
+              { "id": "unit", "value": "decgbytes" },
+              { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+              {
+                "id": "thresholds",
+                "value": {
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "yellow", "value": 10 },
+                    { "color": "red", "value": 100 }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "DURATION_SEC" },
+            "properties": [
+              { "id": "unit", "value": "s" }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "footer": { "show": false },
+        "cellHeight": "sm"
+      }
+    },
+    {
+      "id": 10,
+      "title": "Storage Trend",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 32 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT usage_date AS \"time\", ROUND(STORAGE_BYTES / POWER(1024, 3), 2) AS \"Database (GB)\", ROUND(STAGE_BYTES / POWER(1024, 3), 2) AS \"Stage (GB)\", ROUND(FAILSAFE_BYTES / POWER(1024, 3), 2) AS \"Failsafe (GB)\" FROM SNOWFLAKE.ACCOUNT_USAGE.STORAGE_USAGE WHERE usage_date >= DATEADD(day, -30, CURRENT_DATE()) ORDER BY usage_date",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 20,
+            "drawStyle": "line",
+            "showPoints": "never",
+            "stacking": { "mode": "normal" }
+          },
+          "unit": "decgbytes",
+          "decimals": 2
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    }
+  ]
+}

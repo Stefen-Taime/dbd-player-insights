@@ -1,0 +1,40 @@
+---
+# =============================================================================
+# nginx — reverse proxy for Grafana (/grafana/) and Streamlit (/)
+# Best practice: WebSocket support for both Grafana Live and Streamlit
+# =============================================================================
+
+- name: Install Nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+
+- name: Remove default Nginx site
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Reload Nginx
+
+- name: Template Nginx site config
+  ansible.builtin.template:
+    src: dbd-bi.conf.j2
+    dest: /etc/nginx/sites-available/dbd-bi.conf
+    mode: "0644"
+  notify: Reload Nginx
+
+- name: Enable Nginx site
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/dbd-bi.conf
+    dest: /etc/nginx/sites-enabled/dbd-bi.conf
+    state: link
+  notify: Reload Nginx
+
+- name: Test Nginx configuration
+  ansible.builtin.command: nginx -t
+  changed_when: false
+
+- name: Ensure Nginx is started and enabled
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+    enabled: true

@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: int_match_enriched
+    description: "Match events enriched with killer/survivor stats, character names, and perk details"
+
+  - name: int_player_daily_activity
+    description: "Daily activity per player — sessions, matches, store visits"
+
+  - name: int_session_metrics
+    description: "Session-level metrics — duration, actions per minute"
+
+  - name: int_revenue_daily
+    description: "Daily revenue aggregated by transaction type"
+
+  - name: int_player_first_last
+    description: "First and last seen dates per player (for cohort analysis)"

@@ -1,0 +1,161 @@
+version: 2
+
+models:
+  - name: stg_matches
+    description: "Cleaned match completion events — one row per match"
+    columns:
+      - name: event_id
+        description: "Unique event identifier"
+        tests:
+          - unique
+          - not_null
+      - name: match_id
+        tests:
+          - not_null
+      - name: event_timestamp
+        tests:
+          - not_null
+      - name: game_mode
+        tests:
+          - accepted_values:
+              values: ["public", "custom", "ranked", "kill_your_friends", "ltm_lights_out", "ltm_2v8"]
+      - name: killer_player_id
+        tests:
+          - not_null
+      - name: killer_kills
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 4
+
+  - name: stg_sessions
+    description: "Cleaned session events — one row per action"
+    columns:
+      - name: event_id
+        tests:
+          - unique
+          - not_null
+      - name: player_id
+        tests:
+          - not_null
+      - name: event_timestamp
+        tests:
+          - not_null
+      - name: action
+        tests:
+          - accepted_values:
+              values:
+                - "login"
+                - "logout"
+                - "queue_join"
+                - "queue_cancel"
+                - "match_start"
+                - "match_end"
+                - "store_visit"
+                - "store_purchase"
+                - "loadout_change"
+                - "friend_invite"
+                - "rift_claim"
+                - "bloodweb_spend"
+                - "settings_change"
+      - name: platform
+        tests:
+          - accepted_values:
+              values:
+                - "steam"
+                - "ps5"
+                - "ps4"
+                - "xbox_series"
+                - "xbox_one"
+                - "switch"
+                - "epic"
+                - "windows_store"
+      - name: region
+        tests:
+          - accepted_values:
+              values:
+                - "us-east-1"
+                - "us-west-2"
+                - "eu-west-1"
+                - "eu-central-1"
+                - "ap-northeast-1"
+                - "ap-southeast-2"
+                - "sa-east-1"
+
+  - name: stg_store_transactions
+    description: "Cleaned store transactions — one row per purchase"
+    columns:
+      - name: event_id
+        tests:
+          - unique
+          - not_null
+      - name: transaction_id
+        tests:
+          - unique
+          - not_null
+      - name: player_id
+        description: "Platform player ID (may differ from bhvr_id)"
+        tests:
+          - not_null
+      - name: item_type
+        tests:
+          - accepted_values:
+              values:
+                - "cosmetic_head"
+                - "cosmetic_body"
+                - "cosmetic_weapon"
+                - "dlc_chapter"
+                - "dlc_killer"
+                - "dlc_survivor"
+                - "rift_pass"
+                - "auric_cells_pack"
+                - "bundle"
+                - "charm"
+      - name: amount_usd
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+  - name: stg_mmr_updates
+    description: "Cleaned MMR update events — one row per player per match"
+    columns:
+      - name: event_id
+        tests:
+          - unique
+          - not_null
+      - name: player_id
+        tests:
+          - not_null
+      - name: match_id
+        description: "Match ID — not present in the telemetry stream (null expected)"
+
+  - name: stg_players
+    description: "Deduplicated player profiles — one row per player (latest state)"
+    columns:
+      - name: player_id
+        tests:
+          - unique
+          - not_null
+      - name: platform
+        tests:
+          - accepted_values:
+              values:
+                - "steam"
+                - "ps5"
+                - "ps4"
+                - "xbox_series"
+                - "xbox_one"
+                - "switch"
+                - "epic"
+                - "windows_store"
+
+  - name: stg_progression
+    description: "Cleaned progression events (bloodpoints, prestige, perk unlocks)"
+    columns:
+      - name: event_id
+        tests:
+          - unique
+          - not_null
+      - name: player_id
+        tests:
+          - not_null

@@ -1,0 +1,7 @@
+---
+# Ansible Galaxy requirements — pin versions for reproducibility
+collections:
+  - name: community.docker
+    version: ">=3.13.0"
+  - name: community.general
+    version: ">=10.0.0"

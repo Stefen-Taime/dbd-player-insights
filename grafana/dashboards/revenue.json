@@ -1,0 +1,317 @@
+{
+  "uid": "dbd-revenue",
+  "title": "DBD - Revenue",
+  "description": "Daily revenue, ARPDAU, ARPPU, and store conversion funnel",
+  "tags": ["dbd", "revenue", "monetization"],
+  "timezone": "utc",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "refresh": "5m",
+  "schemaVersion": 39,
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-90d",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Today's Revenue",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT total_revenue_usd FROM DBD_ANALYTICS.MARTS.FCT_DAILY_REVENUE ORDER BY revenue_date DESC LIMIT 1",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "#2a9d8f", "mode": "fixed" },
+          "unit": "currencyUSD",
+          "decimals": 0
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 2,
+      "title": "ARPDAU",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT arpdau FROM DBD_ANALYTICS.MARTS.FCT_ARPDAU ORDER BY metric_date DESC LIMIT 1",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.05 },
+              { "color": "green", "value": 0.10 }
+            ]
+          },
+          "unit": "currencyUSD",
+          "decimals": 4
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 3,
+      "title": "ARPPU",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT arppu FROM DBD_ANALYTICS.MARTS.FCT_ARPDAU ORDER BY metric_date DESC LIMIT 1",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "#e76f51", "mode": "fixed" },
+          "unit": "currencyUSD",
+          "decimals": 2
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Payer Conversion Rate",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT payer_conversion_rate FROM DBD_ANALYTICS.MARTS.FCT_ARPDAU ORDER BY metric_date DESC LIMIT 1",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.02 },
+              { "color": "green", "value": 0.05 }
+            ]
+          },
+          "unit": "percentunit",
+          "decimals": 2
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 5,
+      "title": "Daily Revenue + 7-Day Rolling Average",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 4 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT revenue_date AS \"time\", total_revenue_usd AS \"Daily Revenue\", revenue_7d_avg AS \"7d Avg\" FROM DBD_ANALYTICS.MARTS.FCT_DAILY_REVENUE WHERE revenue_date >= DATEADD(day, -90, CURRENT_DATE()) ORDER BY revenue_date",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "drawStyle": "line",
+            "showPoints": "auto",
+            "spanNulls": false
+          },
+          "unit": "currencyUSD",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "7d Avg" },
+            "properties": [
+              { "id": "custom.lineWidth", "value": 3 },
+              { "id": "custom.fillOpacity", "value": 0 },
+              { "id": "color", "value": { "fixedColor": "#e63946", "mode": "fixed" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Daily Revenue" },
+            "properties": [
+              { "id": "custom.fillOpacity", "value": 20 },
+              { "id": "color", "value": { "fixedColor": "#457b9d", "mode": "fixed" } }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Revenue by Category",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 14 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT revenue_date AS \"time\", cosmetic_revenue_usd AS \"Cosmetics\", dlc_revenue_usd AS \"DLC\", rift_pass_revenue_usd AS \"Rift Pass\", auric_cells_revenue_usd AS \"Auric Cells\" FROM DBD_ANALYTICS.MARTS.FCT_DAILY_REVENUE WHERE revenue_date >= DATEADD(day, -90, CURRENT_DATE()) ORDER BY revenue_date",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 50,
+            "drawStyle": "line",
+            "showPoints": "never",
+            "stacking": { "mode": "normal" }
+          },
+          "unit": "currencyUSD"
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Revenue Breakdown (All Time)",
+      "type": "piechart",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 14 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT 'Cosmetics' AS category, SUM(cosmetic_revenue_usd) AS revenue FROM DBD_ANALYTICS.MARTS.FCT_DAILY_REVENUE UNION ALL SELECT 'DLC', SUM(dlc_revenue_usd) FROM DBD_ANALYTICS.MARTS.FCT_DAILY_REVENUE UNION ALL SELECT 'Rift Pass', SUM(rift_pass_revenue_usd) FROM DBD_ANALYTICS.MARTS.FCT_DAILY_REVENUE UNION ALL SELECT 'Auric Cells', SUM(auric_cells_revenue_usd) FROM DBD_ANALYTICS.MARTS.FCT_DAILY_REVENUE",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "currencyUSD"
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "legend": { "displayMode": "list", "placement": "right", "showLegend": true, "values": ["percent"] },
+        "tooltip": { "mode": "single" },
+        "pieType": "donut"
+      }
+    },
+    {
+      "id": 8,
+      "title": "ARPDAU / ARPPU Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT metric_date AS \"time\", arpdau AS \"ARPDAU\", arppu AS \"ARPPU\" FROM DBD_ANALYTICS.MARTS.FCT_ARPDAU WHERE metric_date >= DATEADD(day, -90, CURRENT_DATE()) ORDER BY metric_date",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 5,
+            "drawStyle": "line",
+            "showPoints": "auto"
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "ARPPU" },
+            "properties": [
+              { "id": "custom.axisPlacement", "value": "right" }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    },
+    {
+      "id": 9,
+      "title": "Store Conversion Funnel",
+      "type": "barchart",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT 'Active Users' AS stage, AVG(active_users) AS avg_count FROM DBD_ANALYTICS.MARTS.FCT_STORE_CONVERSION WHERE metric_date >= DATEADD(day, -30, CURRENT_DATE()) UNION ALL SELECT 'Store Visitors', AVG(store_visitors) FROM DBD_ANALYTICS.MARTS.FCT_STORE_CONVERSION WHERE metric_date >= DATEADD(day, -30, CURRENT_DATE()) UNION ALL SELECT 'Purchasers', AVG(purchasers) FROM DBD_ANALYTICS.MARTS.FCT_STORE_CONVERSION WHERE metric_date >= DATEADD(day, -30, CURRENT_DATE())",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "short",
+          "decimals": 0
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "barWidth": 0.6,
+        "showValue": "always",
+        "stacking": "none",
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": false },
+        "tooltip": { "mode": "single" },
+        "xField": "STAGE"
+      }
+    }
+  ]
+}

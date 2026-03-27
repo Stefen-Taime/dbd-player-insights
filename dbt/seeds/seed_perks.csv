@@ -1,0 +1,31 @@
+perk_id,perk_name,perk_type,role,tier,character_origin
+hex_ruin,Hex: Ruin,hex,killer,3,hag
+bbq_and_chilli,BBQ & Chilli,tracking,killer,3,cannibal
+pop_goes_the_weasel,Pop Goes the Weasel,regression,killer,3,clown
+corrupt_intervention,Corrupt Intervention,blocking,killer,3,plague
+noed,Hex: No One Escapes Death,hex,killer,3,generic
+nurses_calling,A Nurse's Calling,tracking,killer,3,nurse
+thanatophobia,Thanatophobia,slowdown,killer,3,nurse
+sloppy_butcher,Sloppy Butcher,slowdown,killer,2,generic
+bamboozle,Bamboozle,chase,killer,3,clown
+save_the_best_for_last,Save the Best for Last,chase,killer,3,shape
+deadlock,Deadlock,blocking,killer,3,cenobite
+lethal_pursuer,Lethal Pursuer,tracking,killer,3,nemesis
+scourge_pain_resonance,Scourge Hook: Pain Resonance,regression,killer,3,artist
+call_of_brine,Call of Brine,regression,killer,3,onryo
+eruption,Eruption,regression,killer,3,mastermind
+sprint_burst,Sprint Burst,exhaustion,survivor,3,meg_thomas
+adrenaline,Adrenaline,exhaustion,survivor,3,meg_thomas
+iron_will,Iron Will,stealth,survivor,3,jake_park
+borrowed_time,Borrowed Time,altruism,survivor,3,bill_overbeck
+decisive_strike,Decisive Strike,anti_tunnel,survivor,3,laurie_strode
+dead_hard,Dead Hard,exhaustion,survivor,3,david_king
+self_care,Self-Care,healing,survivor,3,claudette_morel
+unbreakable,Unbreakable,recovery,survivor,3,bill_overbeck
+windows_of_opportunity,Windows of Opportunity,information,survivor,3,kate_denson
+kindred,Kindred,information,survivor,2,generic
+bond,Bond,information,survivor,2,dwight_fairfield
+prove_thyself,Prove Thyself,generator,survivor,3,dwight_fairfield
+resilience,Resilience,generator,survivor,3,generic
+off_the_record,Off the Record,anti_tunnel,survivor,3,zarina_kassir
+lithe,Lithe,exhaustion,survivor,3,feng_min

@@ -1,0 +1,68 @@
+# =============================================================================
+# .gitignore — dbd-player-insights
+# =============================================================================
+
+# --- Python ------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# --- Environment & Secrets ---------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+credentials.json
+secrets.yml
+
+# --- dbt ---------------------------------------------------------------------
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+dbt/profiles.yml
+
+# --- Airflow -----------------------------------------------------------------
+airflow/.env
+airflow/logs/
+airflow/plugins/__pycache__/
+
+# --- Terraform ---------------------------------------------------------------
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+*.tfvars
+!*.tfvars.example
+crash.log
+
+# --- Data output -------------------------------------------------------------
+data/
+*.json.gz
+
+# --- Grafana -----------------------------------------------------------------
+grafana/.env
+
+# --- Claude Code -------------------------------------------------------------
+.claude/settings.local.json
+
+# --- IDE / OS ----------------------------------------------------------------
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# --- Ansible -----------------------------------------------------------------
+infra/ansible/inventory.ini
+*.retry

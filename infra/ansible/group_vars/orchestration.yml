@@ -1,0 +1,16 @@
+---
+# =============================================================================
+# Variables for the orchestration host (Airflow + dbt)
+# =============================================================================
+
+# Airflow
+airflow_version: "3.1.8"
+airflow_image: "apache/airflow:3.1.8-python3.12"
+airflow_executor: LocalExecutor
+airflow_api_server_port: 8080
+airflow_fernet_key: "{{ lookup('env', 'AIRFLOW_FERNET_KEY') }}"
+
+# dbt
+dbt_version: "1.9.1"
+dbt_snowflake_version: "1.9.0"
+dbt_target: dev

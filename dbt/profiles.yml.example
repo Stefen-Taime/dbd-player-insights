@@ -1,0 +1,27 @@
+# Copy to ~/.dbt/profiles.yml and fill in credentials from environment variables.
+# NEVER commit real credentials to version control.
+
+dbd_player_insights:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      database: DBD_ANALYTICS
+      warehouse: TRANSFORM_WH
+      role: TRANSFORMER
+      schema: staging
+      threads: 4
+
+    prod:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      database: DBD_ANALYTICS
+      warehouse: TRANSFORM_WH
+      role: TRANSFORMER
+      schema: staging
+      threads: 8

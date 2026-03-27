@@ -1,0 +1,105 @@
+version: 2
+
+models:
+  # --- Player ---
+  - name: fct_player_retention
+    description: "Retention D1/D7/D30 by weekly cohort"
+    columns:
+      - name: cohort_week
+        tests: [not_null]
+      - name: cohort_size
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+
+  - name: fct_player_lifetime
+    description: "Lifetime value per player — total spend, sessions, churn risk"
+    columns:
+      - name: player_id
+        tests: [unique, not_null]
+      - name: lifetime_spend_usd
+        tests: [not_null]
+      - name: churn_segment
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["active", "at_risk", "dormant", "churned"]
+
+  - name: dim_players
+    description: "Player dimension — SCD Type 2 with current state"
+    columns:
+      - name: player_id
+        tests: [unique, not_null]
+
+  - name: fct_dau_mau
+    description: "Daily active users, weekly, monthly + stickiness ratio"
+    columns:
+      - name: metric_date
+        tests: [unique, not_null]
+      - name: dau
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+      - name: mau
+        tests:
+          - not_null
+
+  # --- Match ---
+  - name: fct_match_outcomes
+    description: "Kill/escape rates per killer character"
+    columns:
+      - name: killer_character_id
+        tests: [not_null]
+      - name: kill_rate
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1
+
+  - name: fct_perk_performance
+    description: "Win rate per perk for killer and survivor"
+
+  - name: fct_map_balance
+    description: "Kill rate per map — below 50% = survivor-sided"
+    columns:
+      - name: map_id
+        description: "Map identifier (may be null due to chaos/null injection)"
+        tests:
+          - not_null:
+              severity: warn
+      - name: kill_rate
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1
+
+  - name: fct_mmr_distribution
+    description: "MMR distribution histogram by player segment"
+
+  # --- Revenue ---
+  - name: fct_daily_revenue
+    description: "Daily revenue by item type"
+    columns:
+      - name: revenue_date
+        tests: [not_null]
+      - name: total_revenue_usd
+        tests: [not_null]
+
+  - name: fct_arpdau
+    description: "Average Revenue Per Daily Active User — no NULLs (COALESCE to 0)"
+    columns:
+      - name: metric_date
+        tests: [not_null]
+      - name: arpdau
+        tests: [not_null]
+      - name: arppu
+        tests: [not_null]
+      - name: payer_conversion_rate
+        tests: [not_null]
+
+  - name: fct_store_conversion
+    description: "Store conversion funnel: session -> store visit -> purchase"

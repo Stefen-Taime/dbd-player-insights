@@ -1,0 +1,15 @@
+# Airflow configuration overrides
+# These are applied on top of the default airflow.cfg
+
+[core]
+dags_are_paused_at_creation = true
+load_examples = false
+
+[webserver]
+expose_config = false
+rbac = true
+default_ui_timezone = UTC
+
+[scheduler]
+min_file_process_interval = 30
+dag_dir_list_interval = 300

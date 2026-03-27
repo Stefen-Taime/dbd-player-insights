@@ -1,0 +1,22 @@
+# =============================================================================
+# Snowflake datasource — auto-provisioned on Grafana startup
+# Uses Michelin community plugin (open-source, no Enterprise license needed)
+# =============================================================================
+apiVersion: 1
+
+datasources:
+  - name: Snowflake
+    type: michelin-snowflake-datasource
+    uid: snowflake-dbd
+    access: proxy
+    isDefault: true
+    editable: false
+    jsonData:
+      account: ${SNOWFLAKE_ACCOUNT}
+      username: ${SNOWFLAKE_USER}
+      role: ${SNOWFLAKE_ROLE}
+      warehouse: ${SNOWFLAKE_WAREHOUSE}
+      database: ${SNOWFLAKE_DATABASE}
+      schema: MARTS
+    secureJsonData:
+      password: ${SNOWFLAKE_PASSWORD}

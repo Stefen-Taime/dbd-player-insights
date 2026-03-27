@@ -1,0 +1,74 @@
+---
+# =============================================================================
+# common — base OS setup for all hosts
+# =============================================================================
+
+- name: Wait for cloud-init to finish
+  ansible.builtin.command: cloud-init status --wait
+  changed_when: false
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Upgrade all packages
+  ansible.builtin.apt:
+    upgrade: dist
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Install base packages
+  ansible.builtin.apt:
+    name:
+      - curl
+      - wget
+      - git
+      - unzip
+      - jq
+      - htop
+      - ca-certificates
+      - gnupg
+      - lsb-release
+      - python3-pip
+      - python3-venv
+      - software-properties-common
+      - apt-transport-https
+    state: present
+
+- name: Set timezone
+  community.general.timezone:
+    name: "{{ system_timezone }}"
+
+- name: Configure swap file (2 GB)
+  block:
+    - name: Check if swap file exists
+      ansible.builtin.stat:
+        path: /swapfile
+      register: swap_stat
+
+    - name: Create swap file
+      ansible.builtin.command: fallocate -l 2G /swapfile
+      when: not swap_stat.stat.exists
+      changed_when: true
+
+    - name: Set swap file permissions
+      ansible.builtin.file:
+        path: /swapfile
+        mode: "0600"
+      when: not swap_stat.stat.exists
+
+    - name: Make swap
+      ansible.builtin.command: mkswap /swapfile
+      when: not swap_stat.stat.exists
+      changed_when: true
+
+    - name: Enable swap
+      ansible.builtin.command: swapon /swapfile
+      when: not swap_stat.stat.exists
+      changed_when: true
+
+    - name: Add swap to fstab
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        line: "/swapfile none swap sw 0 0"
+        state: present

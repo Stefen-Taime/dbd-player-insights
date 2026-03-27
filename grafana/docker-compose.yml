@@ -1,0 +1,34 @@
+# =============================================================================
+# Grafana — local dev setup with Michelin Snowflake plugin (open-source)
+# Usage: docker compose up -d
+# UI: http://localhost:3000 (admin / $GRAFANA_ADMIN_PASSWORD)
+# =============================================================================
+
+services:
+  grafana:
+    image: grafana/grafana-oss:11.6.0
+    container_name: dbd-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: michelin-snowflake-datasource
+      GF_INSTALL_PLUGINS: >-
+        https://github.com/michelin/snowflake-grafana-datasource/releases/latest/download/snowflake-grafana-datasource.zip;michelin-snowflake-datasource
+      GF_SERVER_ROOT_URL: http://localhost:3000
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/player-kpis.json
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./provisioning:/etc/grafana/provisioning
+      - ./dashboards:/var/lib/grafana/dashboards
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  grafana_data:

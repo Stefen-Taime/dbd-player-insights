@@ -1,0 +1,21 @@
+# =============================================================================
+# Grafana datasource provisioning — Snowflake (Michelin community plugin)
+# =============================================================================
+apiVersion: 1
+
+datasources:
+  - name: Snowflake
+    type: michelin-snowflake-datasource
+    uid: snowflake-dbd
+    access: proxy
+    isDefault: true
+    editable: false
+    jsonData:
+      account: "{{ snowflake_account }}"
+      username: "{{ snowflake_user }}"
+      database: "{{ snowflake_database }}"
+      warehouse: "{{ snowflake_warehouse }}"
+      role: "{{ snowflake_role }}"
+      schema: MARTS
+    secureJsonData:
+      password: "{{ snowflake_password }}"

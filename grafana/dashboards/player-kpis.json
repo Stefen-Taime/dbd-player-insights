@@ -1,0 +1,357 @@
+{
+  "uid": "dbd-player-kpis",
+  "title": "DBD - Player KPIs",
+  "description": "DAU/MAU, retention, churn segments, and player lifetime metrics",
+  "tags": ["dbd", "player", "kpi"],
+  "timezone": "utc",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "refresh": "5m",
+  "schemaVersion": 39,
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-90d",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "DAU (Daily Active Users)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT dau FROM DBD_ANALYTICS.MARTS.FCT_DAU_MAU ORDER BY metric_date DESC LIMIT 1",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 5000 },
+              { "color": "green", "value": 10000 }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 2,
+      "title": "MAU (Monthly Active Users)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT mau FROM DBD_ANALYTICS.MARTS.FCT_DAU_MAU ORDER BY metric_date DESC LIMIT 1",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 20000 },
+              { "color": "green", "value": 40000 }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 3,
+      "title": "Stickiness (DAU/MAU)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT stickiness_ratio FROM DBD_ANALYTICS.MARTS.FCT_DAU_MAU ORDER BY metric_date DESC LIMIT 1",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.15 },
+              { "color": "green", "value": 0.25 }
+            ]
+          },
+          "unit": "percentunit",
+          "decimals": 1
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Total Players",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT COUNT(*) AS total_players FROM DBD_ANALYTICS.MARTS.DIM_PLAYERS",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 5,
+      "title": "DAU / WAU / MAU Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 4 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT metric_date AS \"time\", dau AS \"DAU\", wau AS \"WAU\", mau AS \"MAU\" FROM DBD_ANALYTICS.MARTS.FCT_DAU_MAU WHERE metric_date >= DATEADD(day, -90, CURRENT_DATE()) ORDER BY metric_date",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "pointSize": 5,
+            "spanNulls": false,
+            "drawStyle": "line",
+            "showPoints": "auto",
+            "axisCenteredZero": false,
+            "stacking": { "mode": "none" }
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "MAU" },
+            "properties": [
+              { "id": "custom.lineWidth", "value": 3 },
+              { "id": "color", "value": { "fixedColor": "#e63946", "mode": "fixed" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "DAU" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "#457b9d", "mode": "fixed" } }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Stickiness Ratio (DAU/MAU) Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT metric_date AS \"time\", stickiness_ratio AS \"Stickiness\" FROM DBD_ANALYTICS.MARTS.FCT_DAU_MAU WHERE metric_date >= DATEADD(day, -90, CURRENT_DATE()) ORDER BY metric_date",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "#e63946", "mode": "fixed" },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "drawStyle": "line",
+            "showPoints": "auto",
+            "spanNulls": false
+          },
+          "unit": "percentunit",
+          "decimals": 1,
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 0.20 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Retention D1 / D7 / D30 by Cohort",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT cohort_week AS \"time\", retention_d1 AS \"D1\", retention_d7 AS \"D7\", retention_d30 AS \"D30\" FROM DBD_ANALYTICS.MARTS.FCT_PLAYER_RETENTION ORDER BY cohort_week",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 5,
+            "drawStyle": "line",
+            "showPoints": "always",
+            "pointSize": 6
+          },
+          "unit": "percentunit",
+          "decimals": 1
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Churn Segments",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 22 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT churn_segment, COUNT(*) AS player_count FROM DBD_ANALYTICS.MARTS.FCT_PLAYER_LIFETIME GROUP BY churn_segment ORDER BY player_count DESC",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "legend": { "displayMode": "list", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "single" },
+        "pieType": "donut"
+      }
+    },
+    {
+      "id": 9,
+      "title": "Lifetime Spend Distribution (USD)",
+      "type": "histogram",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 22 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT lifetime_spend_usd FROM DBD_ANALYTICS.MARTS.FCT_PLAYER_LIFETIME WHERE lifetime_spend_usd > 0",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "#e63946", "mode": "fixed" },
+          "unit": "currencyUSD"
+        }
+      },
+      "options": {
+        "bucketSize": 10,
+        "fillOpacity": 80,
+        "stacking": { "mode": "none" },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "id": 10,
+      "title": "Top Players by Lifetime Value",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 22 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT player_id, platform, churn_segment, lifetime_spend_usd, lifetime_sessions, total_matches, total_active_days FROM DBD_ANALYTICS.MARTS.FCT_PLAYER_LIFETIME ORDER BY lifetime_spend_usd DESC LIMIT 20",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "LIFETIME_SPEND_USD" },
+            "properties": [
+              { "id": "unit", "value": "currencyUSD" },
+              { "id": "decimals", "value": 2 }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "footer": { "show": false },
+        "cellHeight": "sm"
+      }
+    }
+  ]
+}

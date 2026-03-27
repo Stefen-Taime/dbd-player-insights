@@ -1,0 +1,54 @@
+---
+# =============================================================================
+# streamlit — deploy the DBD dashboard via Docker
+# Best practice: python:3.12-slim base, non-root user, healthcheck
+# =============================================================================
+
+- name: Create Streamlit project directory
+  ansible.builtin.file:
+    path: /opt/streamlit
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+
+- name: Template Dockerfile for Streamlit
+  ansible.builtin.template:
+    src: Dockerfile.j2
+    dest: /opt/streamlit/Dockerfile
+    owner: ubuntu
+    group: ubuntu
+    mode: "0644"
+
+- name: Template docker-compose.yml for Streamlit
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: /opt/streamlit/docker-compose.yml
+    owner: ubuntu
+    group: ubuntu
+    mode: "0644"
+
+- name: Template Streamlit .env file
+  ansible.builtin.template:
+    src: streamlit.env.j2
+    dest: /opt/streamlit/.env
+    owner: ubuntu
+    group: ubuntu
+    mode: "0600"
+
+# NOTE: The actual dashboard code (dashboard/) should be synced to /opt/streamlit/app/
+# via git clone or scp before running docker compose build.
+- name: Create app placeholder directory
+  ansible.builtin.file:
+    path: /opt/streamlit/app
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+
+- name: Build and start Streamlit container
+  ansible.builtin.command: docker compose up -d --build
+  args:
+    chdir: /opt/streamlit
+  changed_when: false
+  become: false

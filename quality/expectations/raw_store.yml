@@ -1,0 +1,19 @@
+# Data quality expectations for raw store transactions
+source: raw_dbd.raw_store_transaction
+
+freshness:
+  warn_after: { hours: 2 }
+  error_after: { hours: 4 }
+
+expectations:
+  - type: not_null
+    columns: [event_id, player_id, timestamp, transaction_id, amount_usd]
+
+  - type: accepted_values
+    column: item_type
+    values: [cosmetic, dlc, rift_pass, auric_cells]
+
+  - type: value_range
+    column: amount_usd
+    min: 0
+    max: 500

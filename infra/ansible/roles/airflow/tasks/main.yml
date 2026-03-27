@@ -1,0 +1,66 @@
+---
+# =============================================================================
+# airflow — deploy Airflow 3.x (LocalExecutor) via Docker Compose
+# Key: api-server replaces webserver, dag-processor is separate component
+# =============================================================================
+
+- name: Create Airflow project directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+  loop:
+    - /opt/airflow
+    - /opt/airflow/dags
+    - /opt/airflow/logs
+    - /opt/airflow/plugins
+    - /opt/airflow/config
+
+- name: Template docker-compose.yml for Airflow 3.x
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: /opt/airflow/docker-compose.yml
+    owner: ubuntu
+    group: ubuntu
+    mode: "0644"
+
+- name: Template Airflow .env file
+  ansible.builtin.template:
+    src: airflow.env.j2
+    dest: /opt/airflow/.env
+    owner: ubuntu
+    group: ubuntu
+    mode: "0600"
+
+- name: Create SimpleAuthManager passwords file (admin user)
+  ansible.builtin.copy:
+    content: '{"admin": "admin"}'
+    dest: /opt/airflow/passwords.json
+    owner: ubuntu
+    group: ubuntu
+    mode: "0644"
+    force: false
+
+- name: Pull Airflow Docker images
+  ansible.builtin.command: docker compose pull
+  args:
+    chdir: /opt/airflow
+  changed_when: false
+  become: false
+
+- name: Initialize Airflow database (via init service)
+  ansible.builtin.command: >
+    docker compose run --rm airflow-init
+  args:
+    chdir: /opt/airflow
+  changed_when: false
+  become: false
+
+- name: Start Airflow 3.x services
+  ansible.builtin.command: docker compose up -d
+  args:
+    chdir: /opt/airflow
+  changed_when: false
+  become: false

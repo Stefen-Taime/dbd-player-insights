@@ -1,0 +1,16 @@
+# --- Copy to terraform.tfvars and fill in your values ------------------------
+
+snowflake_organization_name = "YOUR_ORG"
+snowflake_account_name      = "YOUR_ACCOUNT"
+snowflake_user              = "YOUR_USER"
+snowflake_password           = "CHANGE_ME"
+
+aws_region     = "us-east-1"
+s3_bucket_name = "dbd-telemetry-raw"
+
+# After first apply, run DESCRIBE INTEGRATION s3_integration in Snowflake
+# and fill these in, then re-apply:
+# snowflake_aws_iam_user_arn = "arn:aws:iam::..."
+# snowflake_aws_external_id  = "..."
+
+credit_quota_monthly = 10

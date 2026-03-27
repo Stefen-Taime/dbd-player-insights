@@ -1,0 +1,67 @@
+---
+# =============================================================================
+# grafana — deploy Grafana via Docker Compose
+# Uses Michelin community Snowflake plugin (open-source, no Enterprise needed)
+# =============================================================================
+
+- name: Create Grafana directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+  loop:
+    - /opt/grafana
+    - /opt/grafana/provisioning
+    - /opt/grafana/provisioning/datasources
+    - /opt/grafana/provisioning/dashboards
+    - /opt/grafana/dashboards
+
+- name: Template docker-compose.yml for Grafana
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: /opt/grafana/docker-compose.yml
+    owner: ubuntu
+    group: ubuntu
+    mode: "0644"
+
+- name: Template Snowflake datasource provisioning
+  ansible.builtin.template:
+    src: datasource-snowflake.yml.j2
+    dest: /opt/grafana/provisioning/datasources/snowflake.yml
+    owner: "472"
+    group: root
+    mode: "0644"
+
+- name: Template dashboard provider config
+  ansible.builtin.template:
+    src: dashboard-provider.yml.j2
+    dest: /opt/grafana/provisioning/dashboards/default.yml
+    owner: ubuntu
+    group: ubuntu
+    mode: "0644"
+
+- name: Copy Grafana dashboard JSON files
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /opt/grafana/dashboards/
+    owner: ubuntu
+    group: ubuntu
+    mode: "0644"
+  with_fileglob:
+    - "{{ playbook_dir }}/../grafana/dashboards/*.json"
+
+- name: Pull Grafana Docker image
+  ansible.builtin.command: docker compose pull
+  args:
+    chdir: /opt/grafana
+  changed_when: false
+  become: false
+
+- name: Start Grafana
+  ansible.builtin.command: docker compose up -d
+  args:
+    chdir: /opt/grafana
+  changed_when: false
+  become: false

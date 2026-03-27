@@ -1,0 +1,61 @@
+---
+# =============================================================================
+# dbt — install dbt-core + dbt-snowflake in a venv on the orchestration host
+# This runs on the host (not inside Airflow container) so you can also
+# use it interactively via SSH. Airflow DAGs call dbt via BashOperator.
+# =============================================================================
+
+- name: Create dbt project directory
+  ansible.builtin.file:
+    path: /opt/dbt
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+
+- name: Create Python venv for dbt
+  ansible.builtin.command: python3 -m venv /opt/dbt/venv
+  args:
+    creates: /opt/dbt/venv/bin/activate
+  become: false
+
+- name: Install dbt-core and dbt-snowflake
+  ansible.builtin.pip:
+    name:
+      - "dbt-core=={{ dbt_version }}"
+      - "dbt-snowflake=={{ dbt_snowflake_version }}"
+    virtualenv: /opt/dbt/venv
+  become: false
+
+- name: Create dbt profiles directory
+  ansible.builtin.file:
+    path: /home/ubuntu/.dbt
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0700"
+
+- name: Template dbt profiles.yml
+  ansible.builtin.template:
+    src: profiles.yml.j2
+    dest: /home/ubuntu/.dbt/profiles.yml
+    owner: ubuntu
+    group: ubuntu
+    mode: "0600"
+
+- name: Add dbt venv to PATH in .bashrc
+  ansible.builtin.lineinfile:
+    path: /home/ubuntu/.bashrc
+    line: 'export PATH="/opt/dbt/venv/bin:$PATH"'
+    state: present
+  become: false
+
+- name: Verify dbt installation
+  ansible.builtin.command: /opt/dbt/venv/bin/dbt --version
+  changed_when: false
+  become: false
+  register: dbt_version_result
+
+- name: Print dbt version
+  ansible.builtin.debug:
+    msg: "{{ dbt_version_result.stdout }}"

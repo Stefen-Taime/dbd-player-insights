@@ -1,0 +1,18 @@
+# Data quality expectations for raw session events
+source: raw_dbd.raw_session_event
+
+freshness:
+  warn_after: { hours: 1 }
+  error_after: { hours: 2 }
+
+expectations:
+  - type: not_null
+    columns: [event_id, player_id, timestamp, action]
+
+  - type: accepted_values
+    column: action
+    values: [login, logout, queue_join, match_start, match_end, store_visit]
+
+  - type: accepted_values
+    column: platform
+    values: [steam, ps5, xbox, switch, epic]

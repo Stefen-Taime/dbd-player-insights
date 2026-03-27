@@ -1,0 +1,16 @@
+---
+# =============================================================================
+# Variables for the BI host (Grafana + Streamlit)
+# =============================================================================
+
+# Grafana
+grafana_version: "11.6.0"
+grafana_admin_password: "{{ lookup('env', 'GRAFANA_ADMIN_PASSWORD') | default('admin', true) }}"
+grafana_port: 3000
+
+# Streamlit
+streamlit_version: "1.42.0"
+streamlit_port: 8501
+
+# Nginx
+nginx_server_name: "_"  # replace with your domain if any

@@ -1,0 +1,33 @@
+# SLA definitions for data freshness monitoring
+# Used by dbt_freshness_check DAG and quality monitors
+
+sla:
+  raw_matches:
+    source: raw_dbd.raw_match_completed
+    warn_after_hours: 1
+    error_after_hours: 2
+    description: "Match events should arrive within 1 hour"
+
+  raw_sessions:
+    source: raw_dbd.raw_session_event
+    warn_after_hours: 1
+    error_after_hours: 2
+    description: "Session events should arrive within 1 hour"
+
+  raw_store:
+    source: raw_dbd.raw_store_transaction
+    warn_after_hours: 2
+    error_after_hours: 4
+    description: "Store transactions can be slightly delayed"
+
+  raw_mmr:
+    source: raw_dbd.raw_mmr_update
+    warn_after_hours: 2
+    error_after_hours: 4
+    description: "MMR updates follow match completion"
+
+  raw_registration:
+    source: raw_dbd.raw_player_registration
+    warn_after_hours: 4
+    error_after_hours: 8
+    description: "Registration events are less frequent"

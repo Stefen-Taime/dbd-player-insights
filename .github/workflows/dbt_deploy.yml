@@ -1,0 +1,59 @@
+name: dbt Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "dbt/**"
+
+env:
+  SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+  SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+  SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+
+jobs:
+  dbt-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dbt
+        run: pip install dbt-core dbt-snowflake
+
+      - name: Configure dbt profiles
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml << 'EOF'
+          dbd_player_insights:
+            target: prod
+            outputs:
+              prod:
+                type: snowflake
+                account: "${{ secrets.SNOWFLAKE_ACCOUNT }}"
+                user: "${{ secrets.SNOWFLAKE_USER }}"
+                password: "${{ secrets.SNOWFLAKE_PASSWORD }}"
+                database: DBD_ANALYTICS
+                warehouse: TRANSFORM_WH
+                role: TRANSFORMER
+                schema: staging
+                threads: 8
+          EOF
+
+      - name: dbt deps
+        run: cd dbt && dbt deps
+
+      - name: dbt seed
+        run: cd dbt && dbt seed --target prod
+
+      - name: dbt run
+        run: cd dbt && dbt run --target prod
+
+      - name: dbt test
+        run: cd dbt && dbt test --target prod
+
+      - name: dbt docs generate
+        run: cd dbt && dbt docs generate --target prod

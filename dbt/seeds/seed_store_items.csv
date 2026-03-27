@@ -1,0 +1,24 @@
+item_id,item_name,item_type,character_id,rarity,price_auric_cells,price_usd
+cosmetic_trapper_mask_01,Chuckles Mask,cosmetic,trapper,rare,400,3.99
+cosmetic_trapper_mask_02,Bone Mask,cosmetic,trapper,very_rare,600,5.99
+cosmetic_trapper_mask_03,Hockey Mask,cosmetic,trapper,ultra_rare,1080,9.99
+cosmetic_trapper_mask_04,Neon Mask,cosmetic,trapper,ultra_rare,1080,9.99
+cosmetic_meg_head_01,Sporty Braids,cosmetic,meg_thomas,rare,400,3.99
+cosmetic_meg_body_01,Track Jacket,cosmetic,meg_thomas,rare,400,3.99
+cosmetic_claudette_head_01,Autumn Cornrows,cosmetic,claudette_morel,rare,400,3.99
+cosmetic_nurse_body_01,Tattered Dress,cosmetic,nurse,very_rare,600,5.99
+cosmetic_spirit_set_01,Shattered Katana Set,cosmetic,spirit,ultra_rare,1485,14.99
+cosmetic_ghostface_set_01,Classic Robe Set,cosmetic,ghostface,ultra_rare,1485,14.99
+dlc_halloween,Halloween Chapter,dlc,,dlc,500,4.99
+dlc_saw,Saw Chapter,dlc,,dlc,500,4.99
+dlc_stranger_things,Stranger Things Chapter,dlc,,dlc,500,4.99
+dlc_silent_hill,Silent Hill Chapter,dlc,,dlc,500,4.99
+dlc_resident_evil,Resident Evil Chapter,dlc,,dlc,500,4.99
+dlc_alien,Alien Chapter,dlc,,dlc,500,4.99
+rift_pass_s1,Rift Pass Season 1,rift_pass,,rift_pass,1000,9.99
+rift_pass_s2,Rift Pass Season 2,rift_pass,,rift_pass,1000,9.99
+rift_pass_s3,Rift Pass Season 3,rift_pass,,rift_pass,1000,9.99
+auric_500,500 Auric Cells,auric_cells,,currency,0,4.99
+auric_1100,1100 Auric Cells,auric_cells,,currency,0,9.99
+auric_2250,2250 Auric Cells,auric_cells,,currency,0,19.99
+auric_6000,6000 Auric Cells,auric_cells,,currency,0,49.99

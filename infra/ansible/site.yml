@@ -1,0 +1,28 @@
+---
+# =============================================================================
+# Master playbook — provision both EC2 instances
+# Usage:
+#   ansible-playbook site.yml
+#   ansible-playbook site.yml --limit orchestration
+#   ansible-playbook site.yml --limit bi
+# =============================================================================
+
+- name: Provision all hosts (common + Docker)
+  hosts: all
+  roles:
+    - common
+    - docker
+
+- name: Provision orchestration host (Airflow + dbt + Slack alerts)
+  hosts: orchestration
+  roles:
+    - airflow
+    - dbt
+    - slack_alerts
+
+- name: Provision BI host (Grafana + Streamlit + Nginx)
+  hosts: bi
+  roles:
+    - grafana
+    - streamlit
+    - nginx

@@ -1,0 +1,29 @@
+# Data quality expectations for raw match events
+source: raw_dbd.raw_match_completed
+
+freshness:
+  warn_after: { hours: 1 }
+  error_after: { hours: 2 }
+
+expectations:
+  - type: not_null
+    columns: [event_id, match_id, timestamp, killer, survivors]
+
+  - type: accepted_values
+    column: game_mode
+    values: [public, custom, ranked]
+
+  - type: row_count
+    min: 100  # expect at least 100 new matches per hour
+
+  - type: schema_check
+    required_keys:
+      - event_type
+      - event_id
+      - timestamp
+      - match_id
+      - duration_seconds
+      - map_id
+      - game_mode
+      - killer
+      - survivors

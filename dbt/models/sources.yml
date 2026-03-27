@@ -1,0 +1,30 @@
+version: 2
+
+sources:
+  - name: raw_dbd
+    description: "Raw telemetry events ingested by Snowpipe from S3"
+    database: DBD_RAW
+    schema: RAW
+    loader: snowpipe
+
+    freshness:
+      warn_after: { count: 1, period: hour }
+      error_after: { count: 2, period: hour }
+    loaded_at_field: load_ts
+
+    tables:
+      - name: raw_match_completed
+        description: "Raw match completion events (JSON VARIANT)"
+      - name: raw_session_event
+        description: "Raw session events (login, logout, queue, etc.)"
+      - name: raw_store_transaction
+        description: "Raw store purchase events"
+      - name: raw_mmr_update
+        description: "Raw MMR update events post-match"
+      - name: raw_player_registration
+        description: "Raw player registration events"
+      - name: raw_progression_event
+        description: "Raw progression events (bloodpoints, prestige, perk unlocks)"
+        freshness:
+          warn_after: { count: 2, period: hour }
+          error_after: { count: 4, period: hour }

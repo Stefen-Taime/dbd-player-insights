@@ -1,0 +1,17 @@
+# --- Copy this file to terraform.tfvars and fill in your values ---------------
+
+aws_region  = "us-east-1"
+environment = "dev"
+project     = "dbd"
+
+# EC2 sizing — option eco: t3a.large + t3a.large
+#               option safe: t3a.xlarge + t3a.large
+orchestration_instance_type = "t3a.large"
+bi_instance_type            = "t3a.large"
+
+orchestration_volume_size = 40
+bi_volume_size            = 30
+
+# SSH — must match an existing EC2 key pair in your account
+key_name         = "your-key-pair-name"
+allowed_ssh_cidrs = ["YOUR.PUBLIC.IP/32"]

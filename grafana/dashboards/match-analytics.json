@@ -1,0 +1,315 @@
+{
+  "uid": "dbd-match-analytics",
+  "title": "DBD - Match Analytics",
+  "description": "Kill rates, map balance, perk performance, and MMR distribution",
+  "tags": ["dbd", "match", "balance"],
+  "timezone": "utc",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "refresh": "5m",
+  "schemaVersion": 39,
+  "templating": {
+    "list": [
+      {
+        "name": "role",
+        "type": "custom",
+        "label": "Role",
+        "current": { "text": "killer", "value": "killer" },
+        "options": [
+          { "text": "killer", "value": "killer", "selected": true },
+          { "text": "survivor", "value": "survivor", "selected": false }
+        ],
+        "query": "killer,survivor"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-90d",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Average Kill Rate (Overall)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT ROUND(AVG(kill_rate), 3) AS avg_kill_rate FROM DBD_ANALYTICS.MARTS.FCT_MATCH_OUTCOMES",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "blue", "value": null },
+              { "color": "yellow", "value": 0.45 },
+              { "color": "green", "value": 0.50 },
+              { "color": "red", "value": 0.65 }
+            ]
+          },
+          "unit": "percentunit",
+          "decimals": 1
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 2,
+      "title": "Total Matches Analyzed",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT SUM(total_matches) AS total FROM DBD_ANALYTICS.MARTS.FCT_MATCH_OUTCOMES",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "#457b9d", "mode": "fixed" },
+          "unit": "short"
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 3,
+      "title": "Unique Killers",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT COUNT(DISTINCT killer_character_id) AS unique_killers FROM DBD_ANALYTICS.MARTS.FCT_MATCH_OUTCOMES",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "#e63946", "mode": "fixed" },
+          "unit": "short"
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Unique Maps",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT COUNT(DISTINCT map_id) AS unique_maps FROM DBD_ANALYTICS.MARTS.FCT_MAP_BALANCE",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "#a8dadc", "mode": "fixed" },
+          "unit": "short"
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 5,
+      "title": "Kill Rate by Killer",
+      "type": "barchart",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT COALESCE(killer_name, killer_character_id) AS killer, kill_rate, escape_rate FROM DBD_ANALYTICS.MARTS.FCT_MATCH_OUTCOMES WHERE total_matches >= 50 ORDER BY kill_rate DESC LIMIT 25",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "percentunit",
+          "decimals": 1
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "barWidth": 0.7,
+        "showValue": "auto",
+        "stacking": "none",
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single" },
+        "xField": "KILLER"
+      }
+    },
+    {
+      "id": 6,
+      "title": "Map Balance (Kill Rate per Map)",
+      "type": "barchart",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT COALESCE(map_name, map_id) AS map, kill_rate, balance_rating FROM DBD_ANALYTICS.MARTS.FCT_MAP_BALANCE WHERE total_matches >= 50 ORDER BY kill_rate DESC",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 1,
+          "color": { "mode": "continuous-GrYlRd" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.50 },
+              { "color": "red", "value": 0.65 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "barWidth": 0.7,
+        "showValue": "auto",
+        "stacking": "none",
+        "colorByField": "KILL_RATE",
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": false },
+        "tooltip": { "mode": "multi" },
+        "xField": "MAP"
+      }
+    },
+    {
+      "id": 7,
+      "title": "Perk Win Rate (${role})",
+      "type": "barchart",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 14 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT COALESCE(perk_name, perk_id) AS perk, win_rate, times_used FROM DBD_ANALYTICS.MARTS.FCT_PERK_PERFORMANCE WHERE role = '${role}' AND times_used >= 100 ORDER BY win_rate DESC LIMIT 20",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 1,
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "barWidth": 0.7,
+        "showValue": "auto",
+        "stacking": "none",
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" },
+        "xField": "PERK"
+      }
+    },
+    {
+      "id": 8,
+      "title": "MMR Distribution",
+      "type": "barchart",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 14 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT mmr_bucket, mmr_segment, player_count FROM DBD_ANALYTICS.MARTS.FCT_MMR_DISTRIBUTION ORDER BY mmr_bucket",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "short"
+        }
+      },
+      "options": {
+        "orientation": "vertical",
+        "barWidth": 0.9,
+        "showValue": "never",
+        "stacking": "normal",
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi" },
+        "xField": "MMR_BUCKET"
+      }
+    },
+    {
+      "id": 9,
+      "title": "Balance Rating Summary",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+      "datasource": { "type": "michelin-snowflake-datasource", "uid": "snowflake-dbd" },
+      "targets": [
+        {
+          "queryText": "SELECT COALESCE(map_name, map_id) AS map, COALESCE(realm, 'unknown') AS realm, map_size, total_matches, ROUND(kill_rate, 3) AS kill_rate, ROUND(avg_duration_seconds, 0) AS avg_duration_sec, balance_rating FROM DBD_ANALYTICS.MARTS.FCT_MAP_BALANCE ORDER BY kill_rate DESC",
+          "refId": "A",
+          "queryType": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "KILL_RATE" },
+            "properties": [
+              { "id": "unit", "value": "percentunit" },
+              { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+              {
+                "id": "thresholds",
+                "value": {
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "yellow", "value": 0.50 },
+                    { "color": "orange", "value": 0.60 },
+                    { "color": "red", "value": 0.70 }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "footer": { "show": false },
+        "cellHeight": "sm"
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+---
+# =============================================================================
+# Global variables shared across all hosts
+# =============================================================================
+
+project_name: dbd-player-insights
+
+# Docker
+docker_compose_version: "2.32.4"
+
+# Timezone (used by Airflow scheduler & Grafana)
+system_timezone: UTC
+
+# Snowflake connection — override in vault or extra-vars at runtime
+snowflake_account: "{{ lookup('env', 'SNOWFLAKE_ACCOUNT') }}"
+snowflake_user: "{{ lookup('env', 'SNOWFLAKE_USER') }}"
+snowflake_password: "{{ lookup('env', 'SNOWFLAKE_PASSWORD') }}"
+snowflake_database: DBD_ANALYTICS
+snowflake_warehouse: ANALYTICS_WH
+snowflake_role: ANALYST
+
+# Slack webhook for alerts (override via --extra-vars or vault)
+slack_webhook_url: "{{ lookup('env', 'SLACK_WEBHOOK_URL') | default('', true) }}"

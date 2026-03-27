@@ -1,0 +1,57 @@
+name: Terraform Plan
+
+on:
+  pull_request:
+    paths:
+      - "terraform/**"
+      - "infra/terraform/**"
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: us-east-1
+
+jobs:
+  terraform-plan:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        directory:
+          - terraform      # Snowflake + S3 infra
+          - infra/terraform # EC2 compute infra
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9"
+
+      - name: Terraform Init
+        run: terraform -chdir=${{ matrix.directory }} init -backend=false
+
+      - name: Terraform Validate
+        run: terraform -chdir=${{ matrix.directory }} validate
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform -chdir=${{ matrix.directory }} plan -no-color -input=false
+        continue-on-error: true
+
+      - name: Comment PR with plan
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const plan = `${{ steps.plan.outputs.stdout }}`.substring(0, 60000);
+            const body = `### Terraform Plan (\`${{ matrix.directory }}\`)
+            \`\`\`
+            ${plan}
+            \`\`\`
+            `;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
